@@ -1,0 +1,94 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Audio</title>
+	<script type="text/javascript" src="jquery-1.9.1.js"></script>
+<script type="text/javascript">
+var context;
+var canvas;
+var fft;
+
+$(function() {
+	canvas = document.getElementById('specCanvas').getContext('2d');
+
+	var audio = new Audio();
+	audio.src = "track.mp3";
+	
+	context = new webkitAudioContext();
+	fft = context.createAnalyser();
+	fft.fftSize = 1024;
+	data = new Uint8Array(fft.frequencyBinCount);
+	
+	var proc = context.createJavaScriptNode(1024, 1, 1);
+	proc.onaudioprocess = process;
+
+	var gain = context.createGainNode();
+	
+	//audio.play();
+	
+	$('#btnPlay').click(function(){
+	
+		if ( audio.readyState < 3 ) {
+			audio.addEventListener( 'canplay', function () {
+				var source = context.createMediaElementSource(audio);
+				source.connect(proc);
+				source.connect(gain);
+				proc.connect(context.destination);
+				gain.connect(context.destination);
+				console.log('connected ...');
+			});
+		} else {
+			var source = context.createMediaElementSource(audio);
+			source.connect(proc);
+			source.connect(gain);
+			proc.connect(context.destination);
+			gain.connect(context.destination);
+			console.log('connected ...');
+		}
+		audio.play();
+		console.log('started play...');
+	});
+	
+	$('#btnPause').click(function(){
+		audio.pause();
+	});
+	
+	
+});
+
+function process(event) {
+	var buffer = event.inputBuffer.getChannelData(0);
+	var sum = 0;
+	for (i = 0; i < buffer.length; i ++) {
+		if (buffer[i])
+			sum += buffer[i];
+		
+	}
+	var average = sum / buffer.length
+	var scaled_average = average * 1000;
+	
+	var left = Math.floor(context.currentTime * 10);
+	canvas.fillRect(left, 200, left + 1, -scaled_average);
+	//console.log(sum);
+	
+    $('#rwduration').text(context.currentTime.toFixed(0));
+    $('#rwfreq').text(sum.toFixed(2));
+}
+
+function drawSpectrum() {
+	fft.smoothingTimeConstant = this.smoothing;
+	fft.getByteFrequencyData(data);
+	
+
+}
+</script>
+</head>
+
+<body align="left">
+<div>
+<button id='btnPlay'>Play</button><button id='btnPause'>Pause</button>
+<span id='rwduration'></span> - <span id='rwfreq'></span>
+</div>
+<canvas id="specCanvas" width=800 height=300 align="left"></canvas>
+</body>
+</html>
