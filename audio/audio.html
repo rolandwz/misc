@@ -2,6 +2,7 @@
 <html>
 <head>
 	<title>Audio</title>
+	<link rel="stylesheet" href="style.css">
 	<script type="text/javascript" src="jquery-1.9.1.js"></script>
 <script type="text/javascript">
 var magnify = 15;
@@ -24,6 +25,7 @@ var selStart = 0;
 var selEnd = 0;
 var selecting = false;
 var nextFrame;
+var timeOut;
 
 $(function() {
 	audio = new Audio();
@@ -72,6 +74,16 @@ $(function() {
 		stopPlay();
 	});
 	
+	$(document).keydown(function(e){
+		var key = e.keyCode;
+		
+		if (key == 113) {
+			if (playing)
+				stopPlay();
+			else
+				playSelection();
+		}
+	});
 });
 
 function loadUrl() {
@@ -92,7 +104,6 @@ function readyPlay() {
 	$('#btnLoad').text("done");
 	
 	source = context.createMediaElementSource(audio);
-
 	//console.log('audio.duration: ' + audio.duration);
 	canvasWidth = audio.duration * magnify;
 	$('#rwduration').text(secondToTime(audio.duration));
@@ -100,8 +111,8 @@ function readyPlay() {
 	$('#canvasSpec').attr("width", canvasWidth);
 	$('#canvasSpec').attr("height", canvasHeight);
 	canvasSpec = document.getElementById('canvasSpec').getContext('2d');
-	canvasSpec.fillStyle = 'gray';
-	canvasSpec.fillRect(0, 0, canvasWidth, canvasHeight);
+	//canvasSpec.fillStyle = 'gray';
+	//canvasSpec.fillRect(0, 0, canvasWidth, canvasHeight);
 	
 	
 	$('#canvasProgress').attr("width", canvasWidth);
@@ -119,7 +130,7 @@ function readyPlay() {
 	divCanvas = document.getElementById('divCanvas');
 	
 	canvasSelectionObj.onmousedown = function(e){
-		selStart = e.clientX - canvasSelectionObj.offsetLeft + divCanvas.scrollLeft - 8;
+		selStart = e.clientX - divCanvas.offsetLeft + divCanvas.scrollLeft;
 		selEnd = 0;
 		
 		selecting = true;
@@ -128,14 +139,14 @@ function readyPlay() {
 	canvasSelectionObj.onmousemove = function(e){
 		if (!selecting)
 			return;
-		selEnd = e.clientX - canvasSelectionObj.offsetLeft + divCanvas.scrollLeft - 8;
+		selEnd = e.clientX - divCanvas.offsetLeft + divCanvas.scrollLeft;
 		drawSelection();
 	};
 	
 	canvasSelectionObj.onmouseup = function(e){
 		if (!selecting)
 			return;
-		selEnd = e.clientX - canvasSelectionObj.offsetLeft + divCanvas.scrollLeft - 8;
+		selEnd = e.clientX - divCanvas.offsetLeft + divCanvas.scrollLeft;
 		if (selStart > selEnd) {
 			var selTemp = selStart;
 			selStart = selEnd;
@@ -163,7 +174,7 @@ function playSelection() {
 	
 	audio.currentTime = startTime;
 	startPlay();
-	setTimeout("stopPlay();", (endTime - startTime) * 1000);
+	timeOut = setTimeout("stopPlay();", (endTime - startTime) * 1000);
 }
 
 function startPlay() {
@@ -180,6 +191,7 @@ function startPlay() {
 }
 
 function stopPlay() {
+	clearTimeout(timeOut);
 	source.disconnect();
 	audio.pause();
 	playing = false;
@@ -235,18 +247,22 @@ function secondToTime(second) {
 
 <body align="left">
 <div>
-URL: <input type="text" id="audiosrc" size="30" value="track.mp3" />
-<button id="btnLoad">Load</button>
-<button id="btnPlay" disabled>Play</button>
-<button id="btnPause" disabled>Pause</button>
-<button id="btnPlaySelection" disabled>Play Selection</button>
-<span id="rwplayed"></span> / <span id="rwduration"></span>
+Audio Source: <input type="text" id="audiosrc" size="80" value="track.mp3" class="topcoat-text-input--large"/>
+<button id="btnLoad" class="topcoat-button">Load</button>
+<br/><br/>
+<span id="rwplayed">00:00</span> / <span id="rwduration">00:00</span>
+&nbsp;&nbsp;&nbsp;
+<button id="btnPlay" class="topcoat-button" disabled>Play</button>
+<button id="btnPause" class="topcoat-button" disabled>Pause</button>
+<button id="btnPlaySelection" class="topcoat-button" disabled>Play Selection</button>
 </div>
-<div id="divCanvas" style="width:800px; height:170px; overflow-y:hidden; overflow-x:scroll;position:relative;">
+<div id="divCanvas" style="width:800px; height:170px; overflow-y:hidden; overflow-x:auto; position:relative;">
 <canvas id="canvasSpec" width="10" height="10" align="left" style="position: absolute;"></canvas>
 <canvas id="canvasProgress" width="10" height="10" align="left" style="position: absolute;"></canvas>
 <canvas id="canvasSelection" width="10" height="10" align="left" style="position: absolute;"></canvas>
 </div>
-
+<p>
+<textarea rows="20" cols="105" class="topcoat-textarea"></textarea>
+</p>
 </body>
 </html>
