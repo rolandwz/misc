@@ -32,7 +32,7 @@ $(function() {
 	
 	audio.addEventListener('error', function () {
 		$('#btnLoad').removeAttr("disabled");
-		$('#audiosrc').removeAttr("disabled");
+		$('#audiosrc').removeAttr("readonly");
 		$('#btnLoad').text("Load");
 		
 		//readyPlay();
@@ -93,7 +93,7 @@ function loadUrl() {
 	
 	audio.src = audiosrc;
 	
-	$('#audiosrc').attr("disabled", "disabled");
+	$('#audiosrc').attr("readonly", "readonly");
 	$('#btnLoad').attr("disabled", "disabled");
 	$('#btnLoad').text("downloading");
 	
@@ -166,8 +166,10 @@ function drawSelection() {
 }
 
 function playSelection() {
-	if (selEnd - selStart <= 0)
+	if (selEnd - selStart <= 0) {
+		startPlay();
 		return;
+	}
 	
 	var startTime = selStart / magnify;
 	var endTime = selEnd / magnify;
@@ -247,7 +249,7 @@ function secondToTime(second) {
 
 <body align="left">
 <div>
-Audio Source: <input type="text" id="audiosrc" size="80" value="track.mp3" class="topcoat-text-input--large"/>
+Audio Source: <input type="text" id="audiosrc" size="80" value="" class="topcoat-text-input--large"/>
 <button id="btnLoad" class="topcoat-button">Load</button>
 <br/><br/>
 <span id="rwplayed">00:00</span> / <span id="rwduration">00:00</span>
