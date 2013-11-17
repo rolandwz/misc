@@ -17,6 +17,7 @@ var fft;
 var freqdata;
 var source;
 var audio;
+var loaded = false;
 var playing = false;
 var canvasWidth = 10;
 var selStart = 0;
@@ -25,24 +26,36 @@ var selecting = false;
 var nextFrame;
 
 $(function() {
-	
 	audio = new Audio();
-	audio.src = "se-econ-chinese-growth-14nov13.mp3";
+	
+	audio.addEventListener('error', function () {
+		$('#btnLoad').removeAttr("disabled");
+		$('#audiosrc').removeAttr("disabled");
+		$('#btnLoad').text("Load");
+		
+		//readyPlay();
+	});
+	
+	audio.addEventListener('loadedmetadata', function () {
+		readyPlay();
+	});
+	
+	audio.addEventListener('ended', function(){
+		console.log('ended... ');
+		stopPlay();
+	});
 	
 	nextFrame = window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame;
-	context = new webkitAudioContext();
-	//context = new AudioContext();
+	context = new webkitAudioContext(); //context = new AudioContext();
 	fft = context.createAnalyser();
 	fft.fftSize = 512;
 	freqdata = new Uint8Array(512);
 	
-	if (audio.readyState < 3 ) {
-		audio.addEventListener('canplay', function () {
-			readyPlay();
-		});
-	} else {
-		readyPlay();
-	}
+	
+	$('#btnLoad').click(function(){
+		console.log('loading...');
+		loadUrl();
+	});
 	
 	$('#btnPlay').click(function(){
 		console.log('start...');
@@ -61,16 +74,29 @@ $(function() {
 	
 });
 
+function loadUrl() {
+	var audiosrc = $('#audiosrc').val();
+	if (audiosrc.length == 0)
+		return;
+	
+	audio.src = audiosrc;
+	
+	$('#audiosrc').attr("disabled", "disabled");
+	$('#btnLoad').attr("disabled", "disabled");
+	$('#btnLoad').text("downloading");
+	
+	console.log('loading...');
+}
+
 function readyPlay() {
+	$('#btnLoad').text("done");
+	
 	source = context.createMediaElementSource(audio);
 
-	audio.addEventListener('ended', function(){
-		console.log('ended... ');
-		stopPlay();
-	});
-	
+	//console.log('audio.duration: ' + audio.duration);
 	canvasWidth = audio.duration * magnify;
-	console.log('audio.duration : ' + audio.duration);
+	$('#rwduration').text(secondToTime(audio.duration));
+	$('#rwplayed').text(secondToTime(0));
 	$('#canvasSpec').attr("width", canvasWidth);
 	$('#canvasSpec').attr("height", canvasHeight);
 	canvasSpec = document.getElementById('canvasSpec').getContext('2d');
@@ -180,8 +206,7 @@ function drawSpectrum() {
 	}
 	
 	var average = sum / freqdata.length;
-	$('#rwduration').text(currTime.toFixed(1));
-	//$('#rwfreq').text(average.toFixed(2));
+	$('#rwplayed').text(secondToTime(currTime));
 	var scaled_average = (average * 5 / 256) * canvasHeight;
 	
 	var left = Math.floor(currTime * magnify);
@@ -197,15 +222,25 @@ function drawProgress() {
 	canvasProgress.fillStyle = 'red';
 	canvasProgress.fillRect(left, canvasHeight, 1, -canvasHeight);
 }
+
+function secondToTime(second) {
+	var minstr = "" + parseInt(second / 60);
+	if (minstr.length == 1) minstr = "0" + minstr;
+	var secstr = "" + parseInt(second % 60);
+	if (secstr.length == 1) secstr = "0" + secstr;
+	return minstr + ':' + secstr;
+}
 </script>
 </head>
 
 <body align="left">
 <div>
+URL: <input type="text" id="audiosrc" size="30" value="track.mp3" />
+<button id="btnLoad">Load</button>
 <button id="btnPlay" disabled>Play</button>
 <button id="btnPause" disabled>Pause</button>
 <button id="btnPlaySelection" disabled>Play Selection</button>
-<span id="rwduration"></span> - <span id="rwfreq"></span>
+<span id="rwplayed"></span> / <span id="rwduration"></span>
 </div>
 <div id="divCanvas" style="width:800px; height:170px; overflow-y:hidden; overflow-x:scroll;position:relative;">
 <canvas id="canvasSpec" width="10" height="10" align="left" style="position: absolute;"></canvas>
