@@ -27,6 +27,8 @@ var selecting = false;
 var nextFrame;
 var timeOut;
 var autoSaveInterval;
+var startedTime = 0;
+var timingInterval;
 
 $(function() {
 	audio = new Audio();
@@ -199,6 +201,17 @@ function startPlay() {
 	$('#btnPlaySelection').attr("disabled", "disabled");
 	nextFrame(drawAnimation);
 	console.log('playing...');
+	
+	if (startedTime == 0) {
+		startedTime = (new Date()).getTime();
+		timingInterval = setInterval('timeCounting()', 1000);
+	}
+}
+
+function timeCounting() {
+	var nowTime = (new Date()).getTime();
+	
+	$('#rwTiming').text(secondToTime((nowTime - startedTime) / 1000));
 }
 
 function stopPlay() {
@@ -266,6 +279,8 @@ Audio Source: <input type="text" id="audiosrc" size="80" value="" class="topcoat
 <button id="btnPlay" class="topcoat-button" disabled>Play</button>
 <button id="btnPause" class="topcoat-button" disabled>Pause</button>
 <button id="btnPlaySelection" class="topcoat-button" disabled>Play Selection</button>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<span id="rwTiming"></span>
 </div>
 <div id="divCanvas" style="width:800px; height:170px; overflow-y:hidden; overflow-x:auto; position:relative;">
 <canvas id="canvasSpec" width="10" height="10" align="left" style="position: absolute;"></canvas>
@@ -273,7 +288,7 @@ Audio Source: <input type="text" id="audiosrc" size="80" value="" class="topcoat
 <canvas id="canvasSelection" width="10" height="10" align="left" style="position: absolute;"></canvas>
 </div>
 <p>
-<textarea rows="20" cols="105" class="topcoat-textarea" id="txtUser"></textarea>
+<textarea rows="15" cols="80" class="topcoat-textarea" id="txtUser">sfddsf</textarea>
 </p>
 </body>
 </html>

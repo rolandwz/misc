@@ -85,12 +85,13 @@ body {
 .textarea,
 .topcoat-textarea,
 .topcoat-textarea--large {
+  font-size: 1.2rem;
+  line-height: 1.5rem;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
   background-clip: padding-box;
   padding: 0;
   margin: 0;
-  font: inherit;
   color: inherit;
   border: 1px solid #a5a8a8;
   vertical-align: top;
