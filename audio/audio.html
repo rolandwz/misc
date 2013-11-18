@@ -26,6 +26,7 @@ var selEnd = 0;
 var selecting = false;
 var nextFrame;
 var timeOut;
+var autoSaveInterval;
 
 $(function() {
 	audio = new Audio();
@@ -84,7 +85,15 @@ $(function() {
 				playSelection();
 		}
 	});
+	
+	$('#txtUser').val(localStorage.userTxt);
+	autoSaveInterval = setInterval('autoSaving()', 5000);
 });
+
+function autoSaving() {
+	console.log('auto saving...');
+	localStorage.userTxt = $('#txtUser').val();
+}
 
 function loadUrl() {
 	var audiosrc = $('#audiosrc').val();
@@ -264,7 +273,7 @@ Audio Source: <input type="text" id="audiosrc" size="80" value="" class="topcoat
 <canvas id="canvasSelection" width="10" height="10" align="left" style="position: absolute;"></canvas>
 </div>
 <p>
-<textarea rows="20" cols="105" class="topcoat-textarea"></textarea>
+<textarea rows="20" cols="105" class="topcoat-textarea" id="txtUser"></textarea>
 </p>
 </body>
 </html>
