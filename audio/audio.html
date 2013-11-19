@@ -26,7 +26,6 @@ var selEnd = 0;
 var selecting = false;
 var nextFrame;
 var timeOut;
-var autoSaveInterval;
 var startedTime = 0;
 var timingInterval;
 
@@ -89,12 +88,15 @@ $(function() {
 	});
 	
 	$('#txtUser').val(localStorage.userTxt);
-	autoSaveInterval = setInterval('autoSaving()', 5000);
 });
 
-function autoSaving() {
-	console.log('auto saving...');
-	localStorage.userTxt = $('#txtUser').val();
+function timeCounting() {
+	var nowTime = (new Date()).getTime();
+	
+	$('#rwTiming').text(secondToTime((nowTime - startedTime) / 1000));
+	
+	if (parseInt((nowTime - startedTime) / 1000) % 10 == 0)
+		localStorage.userTxt = $('#txtUser').val();
 }
 
 function loadUrl() {
@@ -208,12 +210,6 @@ function startPlay() {
 	}
 }
 
-function timeCounting() {
-	var nowTime = (new Date()).getTime();
-	
-	$('#rwTiming').text(secondToTime((nowTime - startedTime) / 1000));
-}
-
 function stopPlay() {
 	clearTimeout(timeOut);
 	source.disconnect();
@@ -288,7 +284,7 @@ Audio Source: <input type="text" id="audiosrc" size="80" value="" class="topcoat
 <canvas id="canvasSelection" width="10" height="10" align="left" style="position: absolute;"></canvas>
 </div>
 <p>
-<textarea rows="15" cols="80" class="topcoat-textarea" id="txtUser">sfddsf</textarea>
+<textarea rows="15" cols="100" class="topcoat-textarea" id="txtUser"></textarea>
 </p>
 </body>
 </html>

@@ -1,7 +1,7 @@
 body {
   padding: 0 50px;
   background-color: #f4f4f4;
-  font-family: source-sans-pro, sans-serif;
+  font-family: Microsoft Sans Serif, source-sans-pro, sans-serif;
 }
 
 /* Removes defualt blurry focus ring */
@@ -85,7 +85,8 @@ body {
 .textarea,
 .topcoat-textarea,
 .topcoat-textarea--large {
-  font-size: 1.2rem;
+  font-family: Microsoft Sans Serif, source-sans-pro, sans-serif;
+  font-size: 1.0rem;
   line-height: 1.5rem;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
