@@ -118,7 +118,7 @@ function readyPlay() {
 	
 	source = context.createMediaElementSource(audio);
 	//console.log('audio.duration: ' + audio.duration);
-	canvasWidth = audio.duration * magnify;
+	canvasWidth = audio.duration * magnify + 15;
 	$('#rwduration').text(secondToTime(audio.duration));
 	$('#rwplayed').text(secondToTime(0));
 	$('#canvasSpec').attr("width", canvasWidth);
@@ -184,8 +184,10 @@ function playSelection() {
 		return;
 	}
 	
-	var startTime = selStart / magnify;
-	var endTime = selEnd / magnify;
+	var startTime = (selStart - 5) / magnify;
+	if (startTime < 0) startTime = 0;
+	
+	var endTime = (selEnd - 5) / magnify;
 	
 	audio.currentTime = startTime;
 	startPlay();
@@ -241,7 +243,7 @@ function drawSpectrum() {
 	$('#rwplayed').text(secondToTime(currTime));
 	var scaled_average = (average * 5 / 256) * canvasHeight;
 	
-	var left = Math.floor(currTime * magnify);
+	var left = Math.floor(currTime * magnify) + 5;
 	canvasSpec.fillStyle = 'green';
 	canvasSpec.fillRect(left, canvasHeight, 1, -scaled_average);
 }
@@ -249,7 +251,7 @@ function drawSpectrum() {
 
 function drawProgress() {
 	var currTime = audio.currentTime;
-	var left = Math.floor(currTime * 15);
+	var left = Math.floor(currTime * 15) + 5;
 	canvasProgress.clearRect(0, 0, canvasWidth, canvasHeight);
 	canvasProgress.fillStyle = 'red';
 	canvasProgress.fillRect(left, canvasHeight, 1, -canvasHeight);
