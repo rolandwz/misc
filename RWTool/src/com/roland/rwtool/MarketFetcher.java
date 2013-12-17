@@ -18,6 +18,7 @@ import org.apache.http.params.HttpParams;
 
 public class MarketFetcher {
 	public static List<String> marketDataList = null;
+	public static DecimalFormat defaultFormat = new DecimalFormat("#######0.0##");
 
 	public static List<String> getMarketDataList() {
 		marketDataList = new ArrayList<String>();
@@ -25,6 +26,8 @@ public class MarketFetcher {
     	try {
     		marketDataList.add(fetchAgg());
     		marketDataList.add(fetchAgtd());
+    		marketDataList.add(fetchStock("sh000001", "SHDX"));
+    		marketDataList.add(fetchStock("sh600050", "UNICOM"));
     		
     	} catch(Exception e) {
 			e.printStackTrace();
@@ -53,9 +56,8 @@ public class MarketFetcher {
 			double agg0 = usd * xag0 / 31.1035;
 			//double per = Double.parseDouble(xagArr[1]);
 			
-			DecimalFormat format = new DecimalFormat("#######0.0##");
-			String ret = dt + " AGG\n" + format.format(agg) + "   "
-						+ xagArr[1] + "%  " + format.format(agg0) + "\n";
+			String ret = dt + " AGG\n" + defaultFormat.format(agg) + "     "
+						+ xagArr[1] + "%    " + defaultFormat.format(agg0) + "\n";
 			return ret;
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
@@ -78,10 +80,9 @@ public class MarketFetcher {
 			double agtd0 = Double.parseDouble(agtdArr[7]);
 			double per = (agtd - agtd0) * 100 / agtd0;
 			
-			DecimalFormat format = new DecimalFormat("#######0.0##");
 
-			String ret = dt + " AGTD\n" + format.format(agtd) + "   "
-					+ format.format(per) + "%   " + format.format(agtd0) + "\n";
+			String ret = dt + " AGTD\n" + defaultFormat.format(agtd) + "     "
+					+ defaultFormat.format(per) + "%     " + defaultFormat.format(agtd0) + "\n";
 			return ret;
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
@@ -91,6 +92,29 @@ public class MarketFetcher {
 			return "AGTD: IOException";
 		}
 	} // fetchAgtd
+	
+	private static String fetchStock(String stockId, String stockName) {
+		try {
+			String str = fetchUrl("http://hq.sinajs.cn/rn=1386417950746&list=" + stockId);
+			str = str.substring(21, str.length() - 3);
+			String[] arr = str.split(",");
+
+			String dt = arr[30].substring(5) + " " + arr[31];
+			double price = Double.parseDouble(arr[3]);
+			double price0 = Double.parseDouble(arr[2]);
+			double per = (price - price0) * 100 / price0;
+
+			String ret = dt + " " + stockName + "\n" + defaultFormat.format(price) + "     "
+					+ defaultFormat.format(per) + "%     " + defaultFormat.format(price0) + "\n";
+			return ret;
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+			return "AGTD: ClientProtocolException";
+		} catch (IOException e) {
+			e.printStackTrace();
+			return "AGTD: IOException";
+		}
+	}
 	
 	private static String fetchUrl(String url) throws ClientProtocolException, IOException {
 		StringBuilder sb = new StringBuilder();
