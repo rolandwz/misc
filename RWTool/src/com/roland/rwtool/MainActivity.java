@@ -52,7 +52,7 @@ public class MainActivity extends FragmentActivity implements
 		Utils.updateLog("start binding...");
 		PushManager.startWork(getApplicationContext(),
 				PushConstants.LOGIN_TYPE_API_KEY,
-				"B5FGz6bW2OsYP9VlC0T9P7GH");
+				"42A8cSLYwIZnugnNS0WHQUAR");
 		List<String> tags = new ArrayList<String>();
 		tags.add("RWTOOL");
 		PushManager.setTags(getApplicationContext(), tags);

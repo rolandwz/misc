@@ -41,7 +41,16 @@ public class MessageMgt {
 		messageList.remove(index);
 		storeMessages(context);
 	}
-
+	
+	public static List<String> getFormatedMessageList(Context context) {
+		List<String> formatedList = new ArrayList<String>();
+		getMessageList(context);
+		for (String message : messageList) {
+			formatedList.add(message.replaceAll("%%", "\n"));
+		}
+		
+		return formatedList;
+	}
 	
 	public static List<String> getMessageList(Context context) {
     	messageList = new ArrayList<String>();

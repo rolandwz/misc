@@ -58,7 +58,7 @@ public class MessageFragment extends Fragment {
         
         ListView msgListView = (ListView) rootView.findViewById(R.id.message_list); 
         messageAdapter = new ArrayAdapter<String>(getActivity(), 
-                android.R.layout.simple_list_item_1, MessageMgt.getMessageList(this.getActivity()));
+                android.R.layout.simple_list_item_1, MessageMgt.getFormatedMessageList(this.getActivity()));
         msgListView.setAdapter(messageAdapter);
 		msgListView.setOnItemLongClickListener(messageLongClickedHandler);
 		
@@ -86,7 +86,7 @@ public class MessageFragment extends Fragment {
     
     private void refreshMessageList() {
     	messageAdapter.clear();
-    	messageAdapter.addAll(MessageMgt.getMessageList(this.getActivity()));
+    	messageAdapter.addAll(MessageMgt.getFormatedMessageList(this.getActivity()));
     	messageAdapter.notifyDataSetChanged();
     }
 } // class
