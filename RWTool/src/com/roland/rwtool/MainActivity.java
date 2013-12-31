@@ -9,12 +9,8 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.TextView;
 
 import com.baidu.android.pushservice.CustomPushNotificationBuilder;
 import com.baidu.android.pushservice.PushConstants;
@@ -45,9 +41,10 @@ public class MainActivity extends FragmentActivity implements
 				new ArrayAdapter<String>(actionBar.getThemedContext(),
 						android.R.layout.simple_list_item_1,
 						android.R.id.text1, new String[] {
-								getString(R.string.title_section1),
-								getString(R.string.title_section2),
-								getString(R.string.title_section3), }), this);
+								getString(R.string.title_messages),
+								getString(R.string.title_informations),
+								getString(R.string.title_market),
+								getString(R.string.title_log), }), this);
 
 		Utils.updateLog("start binding...");
 		PushManager.startWork(getApplicationContext(),
@@ -108,13 +105,20 @@ public class MainActivity extends FragmentActivity implements
 		}
 		
 		if (1 == position) {
+			Fragment informationFragment = new InformationFragment();
+			getSupportFragmentManager().beginTransaction()
+					.replace(R.id.container, informationFragment).commit();
+			return true;
+		}
+		
+		if (2 == position) {
 			Fragment marketFragment = new MarketFragment();
 			getSupportFragmentManager().beginTransaction()
 					.replace(R.id.container, marketFragment).commit();
 			return true;
 		}
 		
-		if (2 == position) {
+		if (3 == position) {
 			Fragment logsFragment = new LogsFragment();
 			getSupportFragmentManager().beginTransaction()
 					.replace(R.id.container, logsFragment).commit();

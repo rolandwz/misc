@@ -3,6 +3,8 @@
  */
 package com.roland.rwtool;
 
+import com.roland.rwtool.data.MessageMgt;
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;

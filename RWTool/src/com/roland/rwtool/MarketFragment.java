@@ -3,6 +3,8 @@ package com.roland.rwtool;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.roland.rwtool.data.MarketFetcher;
+
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -26,16 +28,16 @@ public class MarketFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_market, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_message, container, false);
 
-        ListView marketListView = (ListView) rootView.findViewById(R.id.market_list);
+        ListView marketListView = (ListView) rootView.findViewById(R.id.message_list);
         List<String> loadingList = new ArrayList<String>();
         loadingList.add("loading");
         marketDataAdapter = new ArrayAdapter<String>(getActivity(), 
                 android.R.layout.simple_list_item_1, loadingList);
         marketListView.setAdapter(marketDataAdapter);
 		
-		Button freshBtn = (Button) rootView.findViewById(R.id.btn_fresh_market); 
+		Button freshBtn = (Button) rootView.findViewById(R.id.btn_fresh_message); 
 		freshBtn.setOnClickListener(new OnClickListener() {
 	        @Override
 	        public void onClick(View view) {
@@ -52,7 +54,7 @@ public class MarketFragment extends Fragment {
     	new Thread(new Runnable() {
     		@Override
     		public void run() {
-    			Utils.updateLog("new fetch thread running..");
+    			Utils.updateLog("market fetch thread running..");
     			Message msg = Message.obtain();
     			msg.obj = MarketFetcher.getMarketDataList();
     			mainHandler.sendMessage(msg);

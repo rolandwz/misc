@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">RW Tool</string>
     <string name="action_settings">Settings</string>
     <string name="button_fresh">Refresh</string>
-    <string name="title_section1">Messages</string>
-    <string name="title_section2">Market</string>
-    <string name="title_section3">Logs</string>
-
+    <string name="title_messages">Messages</string>
+    <string name="title_informations">Informations</string>
+    <string name="title_market">Market</string>
+    <string name="title_log">Logs</string>
 </resources>
