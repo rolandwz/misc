@@ -1,0 +1,126 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Audio</title>
+	<script type="text/javascript" src="jquery-1.9.1.js"></script>
+<script type="text/javascript">
+var context;
+var canvas;
+var fft;
+var buffer;
+var source;
+var audio;
+var playing = false;
+
+$(function() {
+	canvas = document.getElementById('specCanvas').getContext('2d');
+
+	audio = new Audio();
+	audio.src = "a.mp3";
+	
+	context = new webkitAudioContext();
+    webkitRequestAnimationFrame(update);
+	fft = context.createAnalyser();
+	fft.fftSize = 1024;
+	buffer = new Uint8Array(fft.frequencyBinCount);
+	source = context.createMediaElementSource(audio);
+	
+	var gain = context.createGainNode();
+	
+	//audio.play();
+	
+	$('#btnPlay').click(function(){
+	
+		if (audio.readyState < 3 ) {
+			audio.addEventListener( 'canplay', function () {
+				source.connect(fft);
+				source.connect(gain);
+				fft.connect(context.destination);
+				gain.connect(context.destination);
+				console.log('connected ...');
+			});
+		} else {
+			source.connect(fft);
+			source.connect(gain);
+			fft.connect(context.destination);
+			gain.connect(context.destination);
+			console.log('connected ...');
+		}
+		
+		audio.play();
+		playing = true;
+		console.log('started play...');
+		//intervalId = setInterval('drawSpectrum()', 50);
+	});
+	
+	$('#btnPause').click(function(){
+		source.disconnect();
+		audio.pause();
+		playing = false;
+	});
+});
+
+function process(event) {
+	var buffer = event.inputBuffer.getChannelData(0);
+	var sum = 0;
+	for (i = 0; i < buffer.length; i ++) {
+		if (buffer[i])
+			sum += buffer[i];
+		
+	}
+	var average = sum / buffer.length
+	var scaled_average = average * 1000;
+	
+	var left = Math.floor(context.currentTime * 10);
+	canvas.fillRect(left, 200, left + 1, -scaled_average);
+	//console.log(sum);
+	
+    $('#rwduration').text(context.currentTime.toFixed(2));
+    $('#rwfreq').text(sum.toFixed(2));
+}
+
+function drawSpectrum() {
+	//if 
+	//fft.smoothingTimeConstant = this.smoothing;
+	fft.getByteFrequencyData(buffer);
+	var sum = 0;
+	for (i = 0; i < buffer.length; i ++) {
+		sum += buffer[i];
+	}
+	var average = sum / buffer.length;
+    $('#rwduration').text(audio.currentTime.toFixed(0));
+    $('#rwfreq').text(average.toFixed(2));
+    
+    var scaled_average = (average / 256) * 300;
+    
+	var left = Math.floor(audio.currentTime * 20);
+	//console.log('left: ' + left);
+	canvas.fillRect(left, 300, 1, -scaled_average);
+}
+
+function update() {
+    webkitRequestAnimationFrame(update);
+    if(!playing) return;
+    canvas.clearRect(0,0,1050,600);
+    canvas.fillStyle = 'gray';
+    canvas.fillRect(0,0,1050,600);
+    
+    var data = new Uint8Array(512);
+    fft.getByteFrequencyData(data);
+    canvas.fillStyle = 'red';
+    for(var i=00; i<data.length; i++) {
+        canvas.fillRect(1+i*2,250+256-data[i]*2,1,10);
+    }
+    
+}
+</script>
+</head>
+
+<body align="left">
+<div>
+<button id='btnPlay'>Play</button><button id='btnPause'>Pause</button>
+<span id='rwduration'></span> - <span id='rwfreq'></span>
+</div>
+<canvas id="specCanvas" width=1050 height=600 align="left"></canvas>
+</body>
+</html>

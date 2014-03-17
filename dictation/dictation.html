@@ -1,0 +1,292 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Audio</title>
+	<link rel="stylesheet" href="resources/style.css">
+	<script type="text/javascript" src="resources/jquery-1.9.1.js"></script>
+<script type="text/javascript">
+var magnify = 15;
+var canvasHeight = 150;
+
+var context;
+var canvasSpec;
+var canvasProgress;
+var canvasSelection;
+var canvasSelectionObj;
+var divCanvas;
+var fft;
+var freqdata;
+var source;
+var audio;
+var loaded = false;
+var playing = false;
+var canvasWidth = 10;
+var selStart = 0;
+var selEnd = 0;
+var selecting = false;
+var nextFrame;
+var timeOut;
+var startedTime = 0;
+var timingInterval;
+
+$(function() {
+	audio = new Audio();
+	
+	audio.addEventListener('error', function () {
+		$('#btnLoad').removeAttr("disabled");
+		$('#audiosrc').removeAttr("readonly");
+		$('#btnLoad').text("Load");
+		
+		//readyPlay();
+	});
+	
+	audio.addEventListener('loadedmetadata', function () {
+		readyPlay();
+	});
+	
+	audio.addEventListener('ended', function(){
+		console.log('ended... ');
+		stopPlay();
+	});
+	
+	nextFrame = window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame;
+	context = new webkitAudioContext(); //context = new AudioContext();
+	fft = context.createAnalyser();
+	fft.fftSize = 512;
+	freqdata = new Uint8Array(512);
+	
+	
+	$('#btnLoad').click(function(){
+		console.log('loading...');
+		loadUrl();
+	});
+	
+	$('#btnPlay').click(function(){
+		console.log('start...');
+		startPlay();
+	});
+	
+	$('#btnPlaySelection').click(function(){
+		console.log('Play Selection...');
+		playSelection();
+	});
+	
+	$('#btnPause').click(function(){
+		console.log('pause...');
+		stopPlay();
+	});
+	
+	$(document).keydown(function(e){
+		var key = e.keyCode;
+		
+		if (key == 113) {
+			if (playing)
+				stopPlay();
+			else
+				playSelection();
+		}
+	});
+	
+	$('#txtUser').val(localStorage.userTxt);
+});
+
+function timeCounting() {
+	var nowTime = (new Date()).getTime();
+	
+	$('#rwTiming').text(secondToTime((nowTime - startedTime) / 1000));
+	
+	if (parseInt((nowTime - startedTime) / 1000) % 10 == 0)
+		localStorage.userTxt = $('#txtUser').val();
+}
+
+function loadUrl() {
+	var audiosrc = $('#audiosrc').val();
+	if (audiosrc.length == 0)
+		return;
+	
+	audio.src = audiosrc;
+	
+	$('#audiosrc').attr("readonly", "readonly");
+	$('#btnLoad').attr("disabled", "disabled");
+	$('#btnLoad').text("downloading");
+	
+	console.log('loading...');
+}
+
+function readyPlay() {
+	$('#btnLoad').text("done");
+	
+	source = context.createMediaElementSource(audio);
+	//console.log('audio.duration: ' + audio.duration);
+	canvasWidth = audio.duration * magnify + 15;
+	$('#rwduration').text(secondToTime(audio.duration));
+	$('#rwplayed').text(secondToTime(0));
+	$('#canvasSpec').attr("width", canvasWidth);
+	$('#canvasSpec').attr("height", canvasHeight);
+	canvasSpec = document.getElementById('canvasSpec').getContext('2d');
+	//canvasSpec.fillStyle = 'gray';
+	//canvasSpec.fillRect(0, 0, canvasWidth, canvasHeight);
+	
+	
+	$('#canvasProgress').attr("width", canvasWidth);
+	$('#canvasProgress').attr("height", canvasHeight);
+	canvasProgress = document.getElementById('canvasProgress').getContext('2d');
+	canvasProgress.clearRect(0, 0, canvasWidth, canvasHeight);
+	
+	$('#canvasSelection').attr("width", canvasWidth);
+	$('#canvasSelection').attr("height", canvasHeight);
+	canvasSelectionObj = document.getElementById('canvasSelection');
+	canvasSelection = canvasSelectionObj.getContext('2d');
+	canvasSelection.clearRect(0, 0, canvasWidth, canvasHeight);
+	canvasSelection.fillStyle = 'yellow';
+	canvasSelection.globalAlpha = 0.2;
+	divCanvas = document.getElementById('divCanvas');
+	
+	canvasSelectionObj.onmousedown = function(e){
+		selStart = e.clientX - divCanvas.offsetLeft + divCanvas.scrollLeft;
+		selEnd = 0;
+		
+		selecting = true;
+	};
+	
+	canvasSelectionObj.onmousemove = function(e){
+		if (!selecting)
+			return;
+		selEnd = e.clientX - divCanvas.offsetLeft + divCanvas.scrollLeft;
+		drawSelection();
+	};
+	
+	canvasSelectionObj.onmouseup = function(e){
+		if (!selecting)
+			return;
+		selEnd = e.clientX - divCanvas.offsetLeft + divCanvas.scrollLeft;
+		if (selStart > selEnd) {
+			var selTemp = selStart;
+			selStart = selEnd;
+			selEnd = selTemp;
+		}
+		selecting = false;
+		console.log('selStart: ' + selStart + ', selEnd: ' + selEnd);
+	};
+	
+	$('#btnPlay').removeAttr("disabled");
+	console.log('ready... ');
+}
+
+function drawSelection() {
+	canvasSelection.clearRect(0, 0, canvasWidth, canvasHeight);
+	canvasSelection.fillRect(selStart, canvasHeight, selEnd - selStart, -canvasHeight);
+}
+
+function playSelection() {
+	if (selEnd - selStart <= 0) {
+		startPlay();
+		return;
+	}
+	
+	var startTime = (selStart - 5) / magnify;
+	if (startTime < 0) startTime = 0;
+	
+	var endTime = (selEnd - 5) / magnify;
+	
+	audio.currentTime = startTime;
+	startPlay();
+	timeOut = setTimeout("stopPlay();", (endTime - startTime) * 1000);
+}
+
+function startPlay() {
+	source.connect(fft);
+	fft.connect(context.destination);
+	
+	audio.play();
+	playing = true;
+	$('#btnPause').removeAttr("disabled");
+	$('#btnPlay').attr("disabled", "disabled");
+	$('#btnPlaySelection').attr("disabled", "disabled");
+	nextFrame(drawAnimation);
+	console.log('playing...');
+	
+	if (startedTime == 0) {
+		startedTime = (new Date()).getTime();
+		timingInterval = setInterval('timeCounting()', 1000);
+	}
+}
+
+function stopPlay() {
+	clearTimeout(timeOut);
+	source.disconnect();
+	audio.pause();
+	playing = false;
+	$('#btnPlay').removeAttr("disabled");
+	$('#btnPlaySelection').removeAttr("disabled");
+	$('#btnPause').attr("disabled", "disabled");
+	console.log('stopped...');
+}
+
+function drawAnimation() {
+	if(!playing) return;
+	nextFrame(drawAnimation);
+	drawSpectrum();
+	drawProgress();
+}
+
+function drawSpectrum() {
+	var currTime = audio.currentTime;
+	fft.getByteFrequencyData(freqdata);
+	
+	var sum = 0;
+	for (i = 0; i < freqdata.length; i ++) {
+		sum += freqdata[i];
+	}
+	
+	var average = sum / freqdata.length;
+	$('#rwplayed').text(secondToTime(currTime));
+	var scaled_average = (average * 5 / 256) * canvasHeight;
+	
+	var left = Math.floor(currTime * magnify) + 5;
+	canvasSpec.fillStyle = 'green';
+	canvasSpec.fillRect(left, canvasHeight, 1, -scaled_average);
+}
+
+
+function drawProgress() {
+	var currTime = audio.currentTime;
+	var left = Math.floor(currTime * 15) + 5;
+	canvasProgress.clearRect(0, 0, canvasWidth, canvasHeight);
+	canvasProgress.fillStyle = 'red';
+	canvasProgress.fillRect(left, canvasHeight, 1, -canvasHeight);
+}
+
+function secondToTime(second) {
+	var minstr = "" + parseInt(second / 60);
+	if (minstr.length == 1) minstr = "0" + minstr;
+	var secstr = "" + parseInt(second % 60);
+	if (secstr.length == 1) secstr = "0" + secstr;
+	return minstr + ':' + secstr;
+}
+</script>
+</head>
+
+<body align="left">
+<div>
+Audio Source: <input type="text" id="audiosrc" size="80" value="" class="topcoat-text-input--large"/>
+<button id="btnLoad" class="topcoat-button">Load</button>
+<br/><br/>
+<span id="rwplayed">00:00</span> / <span id="rwduration">00:00</span>
+&nbsp;&nbsp;&nbsp;
+<button id="btnPlay" class="topcoat-button" disabled>Play</button>
+<button id="btnPause" class="topcoat-button" disabled>Pause</button>
+<button id="btnPlaySelection" class="topcoat-button" disabled>Play Selection</button>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<span id="rwTiming"></span>
+</div>
+<div id="divCanvas" style="width:800px; height:170px; overflow-y:hidden; overflow-x:auto; position:relative;">
+<canvas id="canvasSpec" width="10" height="10" align="left" style="position: absolute;"></canvas>
+<canvas id="canvasProgress" width="10" height="10" align="left" style="position: absolute;"></canvas>
+<canvas id="canvasSelection" width="10" height="10" align="left" style="position: absolute;"></canvas>
+</div>
+<p>
+<textarea rows="15" cols="100" class="topcoat-textarea" id="txtUser"></textarea>
+</p>
+</body>
+</html>
